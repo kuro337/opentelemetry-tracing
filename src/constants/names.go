@@ -1,5 +1,6 @@
 package constants
 
 const (
-	NAME = "FibonacciService"
+	NAME    = "FibonacciService"
+	SERVICE = "fibhttp"
 )

@@ -1,3 +1,4 @@
 src/go.mod
 src/go.sum
+src/app/backuphandlers
 Secrets

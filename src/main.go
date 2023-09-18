@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"time"
 
 	"main/app"
 	"main/constants"
@@ -31,14 +32,17 @@ func main() {
 	l.Logger.Info("gRPC Tracing Exporter enabled")
 
 	tracer := otel.GetTracerProvider().Tracer(constants.NAME)
-
 	ctx, span := tracer.Start(ctx, "BINARY_EXECUTED")
+
 	defer func() {
-		span.AddEvent("EXIT", trace.WithAttributes(attribute.String("BINARY_EXIT", "EXIT")))
+		span.AddEvent("EXIT", trace.WithAttributes(
+			attribute.String("BINARY_EXIT_STATUS", "SUCCESS"),
+			attribute.String("BINARY_EXIT_TIMESTAMP", time.Now().String()),
+		))
 		span.End()
 	}()
 
 	app.InitFibonacciServer(ctx, tracer, l)
 
-	l.Logger.Info("App Exited")
+	l.Logger.Info("App Exited Successfully")
 }

@@ -157,11 +157,11 @@ kubectl delete configmap otel-collector-conf
 
 # Test curl 
 
-kubectl port-forward pod/go-app-deployment-5f45b89f66-xh4d9 8080:8080
+kubectl port-forward pod/go-app-deployment-5f45b89f66-mgp74 8080:8080
 
-kubectl logs go-app-deployment-5f45b89f66-xh4d9  -c otel-collector
+kubectl logs go-app-deployment-5f45b89f66-mgp74  -c otel-collector
 
-kubectl logs go-app-deployment-5f45b89f66-xh4d9   
+kubectl logs go-app-deployment-5f45b89f66-mgp74   
 
 kubectl get pods   
 

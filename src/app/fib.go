@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func Fibonacci(ctx context.Context, tracer trace.Tracer, n uint) (uint64, error) {
+func ComputeFibonacci(ctx context.Context, tracer trace.Tracer, n uint) (uint64, error) {
 	_, span := tracer.Start(ctx, "COMPUTE")
 	defer span.End()
 

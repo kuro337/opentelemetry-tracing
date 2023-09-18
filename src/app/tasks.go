@@ -10,20 +10,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func initializeServer(tracer trace.Tracer, l *structuredlogger.CustomLogger) (context.Context, *webserver.Server, *HandlerDependencies) {
-	initCtx, span := tracer.Start(context.Background(), "Server Initialization")
-	defer span.End()
-
-	server := webserver.NewServer(":8080").AddLogger(l)
-
-	deps := &HandlerDependencies{tracer: tracer, logger: l}
-
-	l.Logger.Debug("Created Web Server")
-	span.AddEvent("Success Initializing Web Server")
-
-	return initCtx, server, deps
-}
-
 func InitFibonacciServer(ctx context.Context, tracer trace.Tracer, l *structuredlogger.CustomLogger) {
 	_, server, deps := initializeServer(tracer, l)
 
@@ -46,12 +32,27 @@ func InitFibonacciServer(ctx context.Context, tracer trace.Tracer, l *structured
 	}
 }
 
-func (app *FibonacciApp) setupRoutes(ctx context.Context, tracer trace.Tracer) {
-	_, span := tracer.Start(ctx, "HTTPServerActive")
-	span.AddEvent("Success Adding Routes")
+func initializeServer(tracer trace.Tracer, l *structuredlogger.CustomLogger) (context.Context, *webserver.Server, *HandlerDependencies) {
+	initCtx, span := tracer.Start(context.Background(), "Server Initialization")
 	defer span.End()
 
-	app.server.AddRoute("/fibonacci/", TraceRequest(fibonacciHandler(app.deps), tracer))
+	server := webserver.NewServer(":8080").AddLogger(l)
+
+	deps := &HandlerDependencies{tracer: tracer, logger: l}
+
+	l.Logger.Debug("Created Web Server")
+	span.AddEvent("Success Initializing Web Server")
+
+	return initCtx, server, deps
+}
+
+func (app *FibonacciApp) setupRoutes(ctx context.Context, tracer trace.Tracer) {
+	_, span := tracer.Start(ctx, "HTTPServerActive")
+	defer span.End()
+
+	app.server.AddRoute("/fibonacci/", TraceRequest(app.fibonacciHandler, tracer))
 	app.server.AddRoute("/stop", TraceRequest(app.stopHandler, tracer))
+
+	span.AddEvent("Success Adding Routes")
 	app.logger.Logger.Debug("Added Routes")
 }

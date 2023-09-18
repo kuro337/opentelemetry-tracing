@@ -11,8 +11,9 @@ import (
 func TraceRequest(next http.HandlerFunc, tracer trace.Tracer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqCtx, span := tracer.Start(r.Context(), "REQUEST")
+
 		addRequestMetadataToSpan(span, r)
-		r = r.WithContext(reqCtx) // Update request's context
+		r = r.WithContext(reqCtx)
 
 		defer span.End()
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"main/constants"
 	"main/structuredlogger"
 
 	"go.opentelemetry.io/otel"
@@ -28,22 +29,17 @@ func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			// the service name used to display traces in backends
-			semconv.ServiceName("fibhttp"),
+			semconv.ServiceName(constants.SERVICE),
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
-	// If the OpenTelemetry Collector is running on a local cluster (minikube or
-	// microk8s), it should be accessible through the NodePort service at the
-	// `localhost:30080` endpoint. Otherwise, replace `localhost` with the
-	// endpoint of your cluster. If you run the app inside k8s, then you can
-	// probably connect directly to the service through dns.
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, "0.0.0.0:4317",
-		// Note the use of insecure transport here. TLS is recommended in production.
+		// TODO: Add TLS
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
@@ -51,14 +47,13 @@ func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func
 		return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
 	}
 
-	// Set up a trace exporter
+	// Setup Trace Exporter
 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 	}
 
-	// Register the trace exporter with a TracerProvider, using a batch
-	// span processor to aggregate spans before export.
+	// Register Trace Exporter with a TraceProvider - using Batch Span Processing
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
 
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -67,10 +62,9 @@ func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func
 		sdktrace.WithSpanProcessor(bsp),
 	)
 	otel.SetTracerProvider(tracerProvider)
-	// set global propagator to tracecontext (the default is no-op).
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	// Shutdown will flush any remaining spans and shut down the exporter.
+	// Shutdown Flushes remaining spans and Shuts Down the Exporter
 	cleanup = func(ctx context.Context) {
 		if err := tracerProvider.Shutdown(ctx); err != nil {
 			l.Fatal(err)
@@ -103,13 +97,11 @@ func CreateOTELTracingHTTP(ctx context.Context, l *structuredlogger.CustomLogger
 	return cleanup, nil
 }
 
-// newExporter returns a console exporter.
+// To Create a Local Exporter that sends Telemetry to stdout and Disk
 func newLocalExporter(w io.Writer) (trace.SpanExporter, error) {
 	return stdouttrace.New(
 		stdouttrace.WithWriter(w),
-		// Use human-readable output.
 		stdouttrace.WithPrettyPrint(),
-		// Do not print timestamps for the demo.
 		stdouttrace.WithoutTimestamps(),
 	)
 }

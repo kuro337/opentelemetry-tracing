@@ -26,6 +26,6 @@ func (l *CustomLogger) Printf(format string, v ...interface{}) {
 
 // Logs a fatal error and exits the program
 func (l *CustomLogger) Fatal(err error) {
-	l.Logger.Error(err.Error()) // Assuming slog.Logger has an Error method
+	l.Logger.Error(err.Error())
 	os.Exit(1)
 }
