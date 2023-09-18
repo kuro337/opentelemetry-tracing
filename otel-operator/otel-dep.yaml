@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app
+  labels:
+    app: go-app
+spec:
+  selector:
+    matchLabels:
+      app: go-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: go-app
+      annotations:
+        sidecar.opentelemetry.io/inject: "true"
+    spec:
+      containers:
+        - name: go-app
+          image: ghcr.io/chinmay337/go-fib:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      imagePullSecrets:
+        - name: ghcr-secret

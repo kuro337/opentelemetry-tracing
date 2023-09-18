@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+        - name: go-app
+          image: ghcr.io/chinmay337/go-fib:latest
+          ports:
+            - containerPort: 8080
+
+        - name: otel-collector
+          image: otel/opentelemetry-collector:latest
+          args:
+            - "--config=/etc/otel/otel-collector-config.yaml"
+          volumeMounts:
+            - name: otel-config-vol
+              mountPath: /etc/otel
+
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      volumes:
+        - name: otel-config-vol
+          configMap:
+            name: otel-collector-conf
+            items:
+              - key: otel-collector-config.yaml
+                path: otel-collector-config.yaml
