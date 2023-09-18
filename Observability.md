@@ -157,11 +157,11 @@ kubectl delete configmap otel-collector-conf
 
 # Test curl 
 
-kubectl port-forward pod/go-app-deployment-5f45b89f66-fg66j   8080:8080
+kubectl port-forward pod/go-app-deployment-5f45b89f66-xh4d9 8080:8080
 
-kubectl logs go-app-deployment-5f45b89f66-fg66j   -c otel-collector
+kubectl logs go-app-deployment-5f45b89f66-xh4d9  -c otel-collector
 
-kubectl logs go-app-deployment-5f45b89f66-fg66j  
+kubectl logs go-app-deployment-5f45b89f66-xh4d9   
 
 kubectl get pods   
 
@@ -169,8 +169,20 @@ curl http://localhost:8080/fibonacci/12
 curl http://localhost:8080/fibonacci/5
 curl http://localhost:8080/fibonacci/6 
 curl http://localhost:8080/fibonacci/12
+curl http://localhost:8080/fibonacci/12
 curl http://localhost:8080/fibonacci/5
-curl http://localhost:8080/stop         
+curl http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5
+curl -X POST http://localhost:8080/fibonacci/5
+curl -X POST http://localhost:8080/fibonacci/5
+curl http://localhost:8080/fibonacci/5abc
+curl http://localhost:8080/fibonacci/5qqqq
+curl http://localhost:8080/fibonacci/12
+curl http://localhost:8080/stop   
 
 
 kubectl exec -it go-app-deployment-5f45b89f66-jtml6 -- /bin/sh
@@ -182,4 +194,7 @@ ps aux
 kill -2 1 
 
 
+docker build -t go-fib:latest .  
+docker tag go-fib:latest ghcr.io/chinmay337/go-fib:latest
+docker push ghcr.io/chinmay337/go-fib:latest  
 ```

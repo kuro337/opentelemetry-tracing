@@ -66,8 +66,5 @@ func (app *FibonacciApp) stopHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Logger.Info("Req sent to Stop Route")
 	w.Write([]byte("Shutting down..."))
 
-	shutdownCtx, shutdownSpan := app.tracer.Start(context.Background(), "STOP_HANDLER")
-	defer shutdownSpan.End()
-
-	app.server.GracefulShutdown(shutdownCtx)
+	app.server.GracefulShutdown(context.Background())
 }

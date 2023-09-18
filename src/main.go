@@ -11,6 +11,8 @@ import (
 	"main/structuredlogger"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func main() {
@@ -23,16 +25,20 @@ func main() {
 	if err != nil {
 		l.Fatal(err)
 	}
-	defer cleanup()
+	ctx := context.Background()
+	defer cleanup(ctx)
 
 	l.Logger.Info("gRPC Tracing Exporter enabled")
 
-	tracer := otel.Tracer(constants.NAME)
+	tracer := otel.GetTracerProvider().Tracer(constants.NAME)
 
-	mainCtx, mainSpan := tracer.Start(context.Background(), "BINARY_EXECUTED")
-	mainSpan.End()
+	ctx, span := tracer.Start(ctx, "BINARY_EXECUTED")
+	defer func() {
+		span.AddEvent("EXIT", trace.WithAttributes(attribute.String("BINARY_EXIT", "EXIT")))
+		span.End()
+	}()
 
-	app.InitFibonacciServer(mainCtx, tracer, l)
+	app.InitFibonacciServer(ctx, tracer, l)
 
 	l.Logger.Info("App Exited")
 }

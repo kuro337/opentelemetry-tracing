@@ -15,6 +15,7 @@ data:
           http:
             endpoint: 0.0.0.0:4318
     processors:
+      batch:
     extensions:
       health_check: {}
     exporters:
@@ -28,5 +29,5 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: []
+          processors: [batch]
           exporters: [otlphttp]

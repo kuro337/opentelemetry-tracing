@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func(), err error) {
+func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func(ctx context.Context), err error) {
 	ctx := context.Background()
 
 	res, err := resource.New(ctx,
@@ -60,19 +60,19 @@ func CreateOTLPTraceExporterGRPC(l *structuredlogger.CustomLogger) (cleanup func
 	// Register the trace exporter with a TracerProvider, using a batch
 	// span processor to aggregate spans before export.
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
+
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
 		sdktrace.WithSpanProcessor(bsp),
 	)
 	otel.SetTracerProvider(tracerProvider)
-
 	// set global propagator to tracecontext (the default is no-op).
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	// Shutdown will flush any remaining spans and shut down the exporter.
-	cleanup = func() {
-		if err := tracerProvider.Shutdown(context.Background()); err != nil {
+	cleanup = func(ctx context.Context) {
+		if err := tracerProvider.Shutdown(ctx); err != nil {
 			l.Fatal(err)
 		}
 	}

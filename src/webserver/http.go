@@ -4,7 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"main/constants"
 	"main/structuredlogger"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type Server struct {
@@ -46,9 +50,17 @@ func (s *Server) Start() {
 }
 
 func (s *Server) GracefulShutdown(ctx context.Context) {
-	if s.logger != nil {
-		s.logger.Logger.Info("Shutting down HTTP Server")
-	}
+	t := otel.GetTracerProvider().Tracer(constants.NAME)
 
-	s.httpServer.Shutdown(ctx)
+	cleanupCtx, span := t.Start(ctx, "SHUTDOWN")
+
+	span.SetAttributes(attribute.String("SERVER_SHUTTING_DOWN", "SHUTDOWN"))
+
+	span.End()
+
+	if err := s.httpServer.Shutdown(cleanupCtx); err != nil {
+		s.logger.Logger.Error("Error during server shutdown:", err)
+	} else {
+		s.logger.Logger.Info("Shutting down HTTP Server from STOPHANDLER.")
+	}
 }
