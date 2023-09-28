@@ -194,7 +194,4 @@ ps aux
 kill -2 1 
 
 
-docker build -t go-fib:latest .  
-docker tag go-fib:latest ghcr.io/chinmay337/go-fib:latest
-docker push ghcr.io/chinmay337/go-fib:latest  
 ```
